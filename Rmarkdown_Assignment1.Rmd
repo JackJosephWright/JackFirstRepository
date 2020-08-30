@@ -1,0 +1,90 @@
+---
+title: "Week 1- Subsetting Data with /R"
+author: "Jack Wright"
+date: "August 28, 2020"
+output: html_document
+---
+
+The following is an R markdown in which I am cleaning and subsetting some MLB playoff projections from the 538 blog.
+
+
+
+The page I am pulling this dataset from is:
+<https://projects.fivethirtyeight.com/2020-mlb-predictions/>
+
+
+### Loading and Preparing the data from 538
+
+
+I loaded the data using the method outlined in "Automated Data Collection- Chapter 1" and the relevant table into a data frame.
+
+I selected all of the columns except "1-week change" because I didn't think time dependant relative rankings would be an important variable for quantifying the overall strength of the team.
+
+```{r try, message=FALSE, warning=FALSE}
+
+library(stringr)
+library(XML)
+library(rvest)
+library(tibble)
+
+url<-"https://projects.fivethirtyeight.com/2020-mlb-predictions/"
+
+predict_parsed<-read_html(url)
+
+tables<-html_table(predict_parsed, fill=TRUE)
+
+mlb<-tables[[1]]                   
+
+mlb<-mlb[,  c(1,2,3,5,6,7,8,9)]
+```
+
+
+### Renaming and Cleaning the Data
+
+
+I followed the methods outlined in the text to rename the columns and extract the team name and current win total from a value that looked like this.
+```{r}
+colnames(mlb)<-c("name", "division", "rating", "avgSim", "runDiff", "playoffs", "division", "WS")
+
+mlb<-mlb[3:32 ,]
+
+print(mlb$name[1])
+```
+
+```{r}
+
+
+
+name_clean<-unlist(mlb$name)
+name_clean<-str_extract(mlb$name, "[^[:digit:]]+")
+
+win_clean<-unlist(mlb$name)
+win_clean<-str_extract(mlb$name,"[[:digit:]]{2}+")
+
+loss_clean<-unlist(mlb$name)
+loss_clean<-str_extract(mlb$name, "[-][[:digit:]]{2}+")
+#because the Dodgers have lost less than 10 games, a null gets entered. I will manually input it now
+loss_clean[1]<-"-09"
+loss_clean<-str_sub(loss_clean, 2 , 3)
+
+
+mlb<-add_column(mlb, win_clean, .after = "name")
+mlb<-add_column(mlb,loss_clean, .after ="win_clean")
+mlb$name<-name_clean
+```
+
+This is the end result
+```{r}
+library(htmlTable)
+
+
+htmlTable(head(mlb))
+```
+
+
+### Conclusions
+
+
+Having completed this assignment, there are several things I would like to research further. The most glaring is why the formatting of my htmlTable for this database seems like the fonts are different sizes in different columns. I have not used the library 'htmlTable' before, but I'm sure I will learn the nuances as I grow with it. 
+
+If I were to do some analysis on this, I think my first step would be to find how the current record and the rating or run differential related to the final projected record. Once this relationship was established, I would then try to figure out how they parlay that into the odds to make the playoffs.
