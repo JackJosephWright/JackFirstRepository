@@ -1,0 +1,221 @@
+---
+title: "Data Collection Assignment 3"
+author: "Jack Wright"
+date: "`r Sys.Date()`"
+output:
+  openintro::lab_report: default
+  html_document: default
+---
+
+```{r load-packages, message=FALSE, warning=FALSE}
+library(openintro)
+library(stringr)
+library(RCurl)
+library(tidyverse)
+library(dplyr)
+```
+
+###  Exercise 1:
+
+Provide Code that Identifies Majors with "Data" or "Statistics" in the name
+
+```{r, message=FALSE}
+
+#Read data into R using RCurl
+x <- getURL("https://raw.githubusercontent.com/fivethirtyeight/data/master/college-majors/all-ages.csv")
+college_data <- read.csv(text = x)
+
+
+str_subset(college_data$Major,("DATA|STATISTICS"))
+
+
+
+```
+
+
+### Exercise 2:
+
+
+write code that transforms data:
+
+```{r}
+
+#raw text
+dat <- '[1] "bell pepper"  "bilberry"     "blackberry"   "blood orange"
+
+[5] "blueberry"    "cantaloupe"   "chili pepper" "cloudberry"  
+
+[9] "elderberry"   "lime"         "lychee"       "mulberry"    
+
+[13] "olive"        "salal berry"'
+
+#extracting the phrases
+fruit_dat<-str_extract_all(dat,"[a-z]+ ?[a-z]+")%>%unlist()
+
+#collapsing with ', '
+fruit_dat<-str_c(fruit_dat, collapse=', ')
+
+
+#adding in quotes
+fruit_dat<-cat(gsub("\\b", '"', fruit_dat, perl=T))
+
+
+
+
+
+```
+
+
+### Exercise 3
+
+describe the following pattern
+
+part 1
+
+"(.)\1\1"
+
+This will ONLY match "(any character or ".")\1\1". It looks like a backreference, but you need to escape the "\" if you want to use it as a backreference.
+
+Example:
+```{r}
+
+x<-c("(.)\1\1","check\1\1","aaa","b)\1\1")
+
+pattern<-"(.)\1\1"
+
+str_view_all(x,pattern)
+
+
+
+```
+
+part 2
+
+"(.)(.)\\2\\1"
+
+This will match a first group, a second group, followed by the second group again and then the first group again.
+
+Example:
+```{r}
+
+
+
+pattern<-"(.)(.)\\2\\1"
+
+str_view(words,pattern, match=TRUE)
+
+
+
+```
+
+
+part 3
+
+"(..)\1"
+
+this will only match 
+"(any two characters or ..)\1" because it is not a backreference
+
+Example:
+```{r}
+
+x<-c("(.)\1\1","check\1\1","aaa","b)\1\1")
+
+pattern<-"(..)\1"
+
+str_view_all(x,pattern)
+
+
+
+```
+
+part 4
+
+"(.).\\1.\\1"
+
+this will match a group, followed by any character, followed by the group, followed by any character, followed by the group.
+
+Example:
+```{r}
+
+
+
+pattern<-"(.).\\1.\\1"
+
+str_view(words,pattern, match=TRUE)
+
+
+
+```
+
+part 5
+
+"(.)(.)(.).*\\3\\2\\1"
+
+this will match three groups, followed by any number of characters until the group is repeated in reverse.
+
+Example:
+```{r}
+
+
+
+pattern<-"(.)(.)(.).*\\3\\2\\1"
+
+str_view(words,pattern, match=TRUE)
+
+
+
+```
+
+
+
+### Excersise 4:
+
+Construct regular expressions that meet requirements
+
+
+part 1
+
+Start and end with the same character.
+
+```{r}
+
+pattern<-"^(.).*\\1$"
+
+
+#Example
+
+result<-str_subset(words[1:300],pattern)%>%unlist()
+
+result
+```
+
+
+part 2
+
+Contain a repeated pair of letters (e.g. "church" contains "ch" repeated twice.)
+
+```{r}
+
+pattern<-"(..).*\\1"
+
+result<-str_subset(words[1:300],pattern)%>%unlist()
+
+result
+
+```
+
+part 3
+
+Contain one letter repeated in at least three places (e.g. "eleven" contains three "e"s.)
+
+```{r}
+
+pattern<-"(.).*\\1.*\\1"
+
+result<-str_subset(words[1:300],pattern)%>%unlist()
+
+result
+
+```
+
